@@ -11,6 +11,8 @@ from telegram.ext import (
   CommandHandler,
   ContextTypes,
   CallbackQueryHandler,
+  MessageHandler,
+  filters,
 )
 
 # Set up logging
@@ -20,6 +22,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
 
 async def button_handler(
     update: Update,
@@ -128,6 +131,34 @@ async def ping(
 
   await message.reply_text("Pong! 🏓")
 
+async def handle_text(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+) -> None:
+  """Handle text messages that are not commands."""
+  message = update.effective_message
+
+  if message is None or message.text is None:
+    logger.warning("Received an update without a message.")
+    return
+
+  text = message.text.strip().lower()
+
+  if not text:
+    await message.reply_text("You sent an empty message. Please type something.")
+    return
+
+  if text in ["hi", "hello", "hey"]:
+    await message.reply_text("Hello! How can I assist you today?")
+  elif text in ["bye", "goodbye", "see you"]:
+    await message.reply_text("Goodbye! Have a great day!")
+  else:
+    await message.reply_text(
+      "I'm not sure how to respond to that. "
+      "Please use the buttons or type /help for assistance."
+    )
+
+
 async def error_handler(
     update: object,
     context: ContextTypes.DEFAULT_TYPE
@@ -153,7 +184,9 @@ def main() -> None:
   application.add_handler(CommandHandler("about", about))
   application.add_handler(CommandHandler("ping", ping))
   application.add_handler(CallbackQueryHandler(button_handler))
-  
+  # Register message handler for text messages
+  application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+
   # Register error handling
   application.add_error_handler(error_handler)
 
