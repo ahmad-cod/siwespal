@@ -21,6 +21,29 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+async def button_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+) -> None:
+  """Handle button presses from the inline keyboard."""
+  query = update.callback_query
+
+  if query is None:
+    logger.warning("Received a callback query without a query.")
+    return
+
+  await query.answer()
+
+  if query.data == "about":
+    await about(update, context)
+  elif query.data == "help":
+    await help_command(update, context)
+  else:
+    await query.edit_message_text(
+      text="Unknown action. Please use the buttons provided."
+    )
+
+  
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -129,7 +152,8 @@ def main() -> None:
   application.add_handler(CommandHandler("help", help_command))
   application.add_handler(CommandHandler("about", about))
   application.add_handler(CommandHandler("ping", ping))
-
+  application.add_handler(CallbackQueryHandler(button_handler))
+  
   # Register error handling
   application.add_error_handler(error_handler)
 
