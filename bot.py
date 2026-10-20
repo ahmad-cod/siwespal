@@ -5,6 +5,7 @@ from telegram import (
   Update,
   InlineKeyboardButton,
   InlineKeyboardMarkup,
+  BotCommand,
 )
 from telegram.ext import (
   Application,
@@ -158,6 +159,17 @@ async def handle_text(
       "Please use the buttons or type /help for assistance."
     )
 
+async def post_init(
+    application: Application
+) -> None:
+  """Set bot commands after the application has started."""
+  commands = [
+    BotCommand("start", "Start the bot"),
+    BotCommand("help", "Show available commands"),
+    BotCommand("about", "Learn more about this bot"),
+    BotCommand("ping", "Check the bot's responsiveness"),
+  ]
+  await application.bot.set_my_commands(commands)
 
 async def error_handler(
     update: object,
@@ -176,7 +188,11 @@ def main() -> None:
   if not token:
     raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set.")
 
-  application = Application.builder().token(token).build()
+  application = (Application.builder()
+                 .token(token)
+                 .post_init(post_init)
+                 .build()
+                )
 
   # Register command handlers
   application.add_handler(CommandHandler("start", start))
